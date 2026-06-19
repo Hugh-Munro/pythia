@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pythia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', -apple-system, sans-serif;
+  background: #F2F1ED;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 14px 28px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.logo-wrap { display: flex; align-items: baseline; gap: 10px; }
+
+.logo {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 500;
+  letter-spacing: -0.8px;
+  color: #1A1A1A;
+}
+
+.logo-sub {
+  font-size: 13px;
+  color: #A8A8A0;
+  font-weight: 400;
+  letter-spacing: -0.2px;
+}
+
+.header-actions { display: flex; gap: 8px; align-items: center; }
+
+.hbtn {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 7px 14px;
+  border-radius: 20px;
+  border: 0.5px solid rgba(0,0,0,0.12);
+  background: #fff;
+  color: #1A1A1A;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+.hbtn:hover { background: #F5F5F0; }
+.hbtn.primary {
+  background: #1A1A1A;
+  color: #fff;
+  border-color: transparent;
+}
+.hbtn.primary:hover { opacity: 0.85; }
+
+.main {
+  display: grid;
+  grid-template-columns: 148px 1fr 220px;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.left-panel {
+  background: #fff;
+  border-radius: 20px;
+  border: 0.5px solid rgba(0,0,0,0.07);
+  padding: 16px 14px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow: hidden;
+}
+
+.section-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: #B0AFA8;
+  letter-spacing: 0.04em;
+  margin-bottom: 8px;
+}
+
+.die-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+
+.die-card {
+  aspect-ratio: 1;
+  border-radius: 14px;
+  border: 0.5px solid rgba(0,0,0,0.08);
+  background: #F8F7F4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.14s;
+  gap: 3px;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.8);
+}
+.die-card:hover:not(.active) { background: #F0EFEa; }
+.die-card.active {
+  background: #1A1A1A;
+  border-color: #1A1A1A;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.25), inset 0 1px 0 rgba(255,255,255,0.12);
+}
+.die-label {
+  font-size: 9px;
+  font-weight: 500;
+  color: #888;
+}
+.die-card.active .die-label { color: rgba(255,255,255,0.6); }
+
+.piece-btns { display: flex; flex-direction: column; gap: 7px; }
+
+.piece-btn {
+  width: 100%;
+  padding: 10px 10px;
+  border-radius: 14px;
+  border: 0.5px solid rgba(0,0,0,0.07);
+  background: #F8F7F4;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: #888;
+  transition: all 0.12s;
+  user-select: none;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8);
+}
+.piece-btn.snake-btn.active-mode {
+  background: #FFF0EE;
+  border-color: #F5C4B8;
+  color: #B83020;
+  box-shadow: 0 1px 4px rgba(184,48,32,0.12), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+.piece-btn.ladder-btn.active-mode {
+  background: #F0F7EE;
+  border-color: #B8DEB0;
+  color: #286A20;
+  box-shadow: 0 1px 4px rgba(40,106,32,0.1), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+
+.hint-box {
+  background: #F8F7F4;
+  border-radius: 12px;
+  padding: 10px 10px;
+  font-size: 10px;
+  color: #B0AFA8;
+  line-height: 1.5;
+  border: 0.5px solid rgba(0,0,0,0.05);
+}
+
+.board-card {
+  background: #fff;
+  border-radius: 20px;
+  border: 0.5px solid rgba(0,0,0,0.07);
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.size-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.size-label { font-size: 11px; color: #B0AFA8; font-weight: 500; }
+.size-val {
+  font-family: 'DM Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  color: #1A1A1A;
+  min-width: 36px;
+  text-align: right;
+}
+
+input[type=range] {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 3px;
+  background: #E8E7E2;
+  border-radius: 2px;
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: #1A1A1A;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+}
+
+.board-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.board-grid {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  height: 100%;
+}
+
+.sq {
+  border-radius: 7px;
+  background: #F5F4F0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 3px 4px;
+  font-family: 'DM Mono', monospace;
+  font-size: 8px;
+  color: #D0CFC8;
+  font-weight: 400;
+  user-select: none;
+  position: relative;
+  min-height: 0;
+  cursor: pointer;
+}
+.sq.light {
+  background: #FAFAF8;
+  border: 0.5px solid rgba(0,0,0,0.05);
+}
+.sq.finish {
+  background: #EBF3FF;
+  color: #5B90CC;
+}
+.sq.start-sq {
+  background: #F0F7EE;
+  color: #6BAA60;
+}
+.sq.highlight {
+  background: #FFF7E6;
+  border: 1.5px solid #E8B840 !important;
+}
+
+.overlay-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+.drag-preview {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.side-card {
+  background: #fff;
+  border-radius: 20px;
+  border: 0.5px solid rgba(0,0,0,0.07);
+  padding: 16px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.04);
+  flex-shrink: 0;
+}
+
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 4px; }
+
+.stat-block {
+  background: #F8F7F4;
+  border-radius: 12px;
+  padding: 10px 12px;
+  border: 0.5px solid rgba(0,0,0,0.05);
+}
+.stat-label {
+  font-size: 10px;
+  color: #B0AFA8;
+  font-weight: 500;
+  margin-bottom: 4px;
+}
+.stat-value {
+  font-family: 'DM Mono', monospace;
+  font-size: 20px;
+  font-weight: 500;
+  color: #1A1A1A;
+  letter-spacing: -0.5px;
+  line-height: 1;
+}
+.stat-block.full { grid-column: 1 / -1; }
+.stat-value.small {
+  font-size: 14px;
+}
+
+.hist-label {
+  font-size: 10px;
+  color: #B0AFA8;
+  font-weight: 500;
+  margin-bottom: 6px;
+  margin-top: 12px;
+}
+.hist-canvas-wrap { width: 100%; height: 80px; }
+#hist { width: 100%; height: 100%; display: block; }
+.hist-axis {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+.hist-axis span {
+  font-family: 'DM Mono', monospace;
+  font-size: 9px;
+  color: #C8C7C0;
+}
+
+.action-btns { display: flex; flex-direction: column; gap: 7px; }
+
+.abtn {
+  width: 100%;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  padding: 11px 14px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  transition: all 0.12s;
+  text-align: center;
+}
+.abtn.primary {
+  background: #1A1A1A;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+.abtn.primary:hover { opacity: 0.88; }
+.abtn.secondary {
+  background: #F8F7F4;
+  color: #1A1A1A;
+  border: 0.5px solid rgba(0,0,0,0.08);
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8);
+}
+.abtn.secondary:hover { background: #F0EFEa; }
+.abtn.ghost {
+  background: transparent;
+  color: #B0AFA8;
+  border: 0.5px solid rgba(0,0,0,0.07);
+}
+.abtn.ghost:hover { background: #F8F7F4; color: #888; }
+.abtn:disabled { opacity: 0.38; cursor: not-allowed; }
+
+.connector-list { display: flex; flex-direction: column; gap: 5px; max-height: 140px; overflow-y: auto; }
+.connector-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  border-radius: 10px;
+  background: #F8F7F4;
+  font-size: 11px;
+  font-family: 'DM Mono', monospace;
+  color: #1A1A1A;
+  border: 0.5px solid rgba(0,0,0,0.05);
+}
+.connector-row .type-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.connector-row .del-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #C8C7C0;
+  font-size: 14px;
+  line-height: 1;
+  padding: 0 2px;
+  transition: color 0.1s;
+}
+.connector-row .del-btn:hover { color: #B83020; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="logo-wrap">
+      <span class="logo">Pythia</span>
+      <span class="logo-sub">board builder</span>
+    </div>
+    <div class="header-actions">
+      <button class="hbtn" id="undo-btn" title="Undo">undo</button>
+      <button class="hbtn" id="random-btn">random classic board</button>
+      <button class="hbtn" id="clear-btn">clear</button>
+      <button class="hbtn primary" id="calc-btn">calculate</button>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <div class="left-panel">
+      <div>
+        <div class="section-label">Die</div>
+        <div class="die-grid">
+          <div class="die-card active" data-die="coin">
+            <svg width="28" height="20" viewBox="0 0 28 20" fill="none">
+              <ellipse cx="14" cy="14" rx="11" ry="6" stroke="rgba(255,255,255,0.3)" stroke-width="1.2" fill="rgba(255,255,255,0.08)"/>
+              <ellipse cx="14" cy="10" rx="11" ry="6" fill="#1A1A1A" stroke="rgba(255,255,255,0.25)" stroke-width="1.2"/>
+              <text x="14" y="12.5" text-anchor="middle" font-size="5" fill="rgba(255,255,255,0.7)" font-family="DM Sans,sans-serif" font-weight="500">COIN</text>
+            </svg>
+            <div class="die-label">coin</div>
+          </div>
+          <div class="die-card" data-die="d4">
+            <svg width="24" height="22" viewBox="0 0 24 22" fill="none">
+              <path d="M12 2 L22 20 L2 20 Z" stroke="#8e8e93" stroke-width="1.4" stroke-linejoin="round" fill="rgba(0,0,0,0.04)"/>
+              <circle cx="12" cy="8.5" r="1.2" fill="#8e8e93"/>
+              <circle cx="9" cy="15" r="1.2" fill="#8e8e93"/>
+              <circle cx="15" cy="15" r="1.2" fill="#8e8e93"/>
+              <circle cx="12" cy="14" r="1.2" fill="#8e8e93"/>
+            </svg>
+            <div class="die-label">d4</div>
+          </div>
+          <div class="die-card" data-die="d6">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="2" width="20" height="20" rx="5" fill="rgba(0,0,0,0.04)" stroke="#8e8e93" stroke-width="1.3"/>
+              <rect x="2" y="2" width="20" height="8" rx="5" fill="rgba(255,255,255,0.5)" stroke="none"/>
+              <circle cx="7" cy="7" r="1.4" fill="#8e8e93"/>
+              <circle cx="17" cy="7" r="1.4" fill="#8e8e93"/>
+              <circle cx="7" cy="17" r="1.4" fill="#8e8e93"/>
+              <circle cx="17" cy="17" r="1.4" fill="#8e8e93"/>
+              <circle cx="7" cy="12" r="1.4" fill="#8e8e93"/>
+              <circle cx="17" cy="12" r="1.4" fill="#8e8e93"/>
+            </svg>
+            <div class="die-label">d6</div>
+          </div>
+          <div class="die-card" data-die="d8">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="2" width="20" height="20" rx="5" fill="rgba(0,0,0,0.04)" stroke="#8e8e93" stroke-width="1.3"/>
+              <rect x="2" y="2" width="20" height="8" rx="5" fill="rgba(255,255,255,0.5)" stroke="none"/>
+              <circle cx="7" cy="7" r="1.2" fill="#8e8e93"/>
+              <circle cx="17" cy="7" r="1.2" fill="#8e8e93"/>
+              <circle cx="7" cy="17" r="1.2" fill="#8e8e93"/>
+              <circle cx="17" cy="17" r="1.2" fill="#8e8e93"/>
+              <circle cx="12" cy="7" r="1.2" fill="#8e8e93"/>
+              <circle cx="12" cy="17" r="1.2" fill="#8e8e93"/>
+              <circle cx="7" cy="12" r="1.2" fill="#8e8e93"/>
+              <circle cx="17" cy="12" r="1.2" fill="#8e8e93"/>
+            </svg>
+            <div class="die-label">d8</div>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Place</div>
+        <div class="piece-btns">
+          <div class="piece-btn snake-btn active-mode" id="btn-snake">
+            <svg width="18" height="24" viewBox="0 0 22 28" fill="none">
+              <path d="M11 25 C5 21 3 15 7 11 C11 7 15 9 15 5 C15 2 12 1 9 2" stroke="#B83020" stroke-width="3" stroke-linecap="round" fill="none"/>
+              <ellipse cx="9" cy="2" rx="2.5" ry="1.8" fill="#B83020" transform="rotate(-15 9 2)"/>
+              <path d="M7.5 1 L6 0" stroke="#E8705A" stroke-width="1" stroke-linecap="round"/>
+              <path d="M8.5 0.5 L7.5 -0.5" stroke="#E8705A" stroke-width="1" stroke-linecap="round"/>
+            </svg>
+            snake
+          </div>
+          <div class="piece-btn ladder-btn" id="btn-ladder">
+            <svg width="14" height="24" viewBox="0 0 18 28" fill="none">
+              <line x1="3" y1="2" x2="3" y2="26" stroke="#4A3510" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="15" y1="2" x2="15" y2="26" stroke="#4A3510" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="3" y1="8" x2="15" y2="8" stroke="#8B6320" stroke-width="2" stroke-linecap="round"/>
+              <line x1="3" y1="14" x2="15" y2="14" stroke="#8B6320" stroke-width="2" stroke-linecap="round"/>
+              <line x1="3" y1="20" x2="15" y2="20" stroke="#8B6320" stroke-width="2" stroke-linecap="round"/>
+              <line x1="3" y1="8" x2="15" y2="8" stroke="#C8973A" stroke-width="0.8" stroke-linecap="round"/>
+              <line x1="3" y1="14" x2="15" y2="14" stroke="#C8973A" stroke-width="0.8" stroke-linecap="round"/>
+              <line x1="3" y1="20" x2="15" y2="20" stroke="#C8973A" stroke-width="0.8" stroke-linecap="round"/>
+            </svg>
+            ladder
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="section-label">Connectors</div>
+        <div class="connector-list" id="connector-list">
+          <div style="font-size:10px;color:#C8C7C0;padding:4px 0;" id="no-connectors-msg">none placed yet</div>
+        </div>
+      </div>
+
+      <div class="hint-box" id="hint-text">drag from one square to another to place a snake</div>
+    </div>
+
+    <div class="board-card">
+      <div class="size-row">
+        <span class="size-label">size</span>
+        <input type="range" min="3" max="10" value="6" step="1" id="size-slider">
+        <span class="size-val" id="size-out">6 x 6</span>
+      </div>
+      <div class="board-wrap" id="board-wrap">
+        <div class="board-grid" id="grid"></div>
+        <svg class="overlay-svg" id="overlay"></svg>
+        <svg class="drag-preview" id="preview"></svg>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="side-card">
+        <div class="section-label" style="margin-bottom:10px;">Result</div>
+        <div class="stat-grid">
+          <div class="stat-block">
+            <div class="stat-label">expected</div>
+            <div class="stat-value" id="res-mean">--</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-label">std dev</div>
+            <div class="stat-value" id="res-std">--</div>
+          </div>
+          <div class="stat-block full" id="sim-block" style="display:none;">
+            <div class="stat-label">last run</div>
+            <div class="stat-value small"><span id="sim-steps">--</span> steps</div>
+          </div>
+          <div class="stat-block full" id="prob-block" style="display:none;">
+            <div class="stat-label">P(finish within mean)</div>
+            <div class="stat-value small" id="res-prob">--</div>
+          </div>
+        </div>
+        <div class="hist-label">Distribution</div>
+        <div class="hist-canvas-wrap">
+          <canvas id="hist"></canvas>
+        </div>
+        <div class="hist-axis">
+          <span id="hist-min"></span>
+          <span id="hist-mid"></span>
+          <span id="hist-max"></span>
+        </div>
+      </div>
+
+      <div class="action-btns">
+        <button class="abtn primary" id="calc-btn2">calculate</button>
+        <button class="abtn secondary" id="monte-btn">monte carlo</button>
+        <button class="abtn secondary" id="sim-btn">simulate run</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let N = 6;
+let mode = 'snake';
+let connectors = [];
+let history = [];
+let isDragging = false;
+let dragStartSq = null;
+let dragStartPos = null;
+let dragCurrentPos = null;
+let simRunning = false;
+let simCancel = false;
+let tokenEl = null;
+let barHeights = [];
+let currentTokenColour = 0;
+
+const TOKEN_COLOURS = [
+  { body: '#2980D9', top: '#5DADE2', base: '#1a6bb5', shine: 'rgba(255,255,255,0.3)'  },
+  { body: '#C0392B', top: '#E74C3C', base: '#922B21', shine: 'rgba(255,255,255,0.25)' },
+  { body: '#27AE60', top: '#2ECC71', base: '#1E8449', shine: 'rgba(255,255,255,0.25)' },
+  { body: '#D35400', top: '#E67E22', base: '#A04000', shine: 'rgba(255,255,255,0.25)' },
+  { body: '#8E44AD', top: '#9B59B6', base: '#6C3483', shine: 'rgba(255,255,255,0.25)' },
+  { body: '#17202A', top: '#2C3E50', base: '#0d1117', shine: 'rgba(255,255,255,0.2)'  },
+];
+
+const dieMap = { coin:[1,2], d4:[1,2,3,4], d6:[1,2,3,4,5,6], d8:[1,2,3,4,5,6,7,8] };
+let dieFaces = [1, 2];
+
+const CLASSIC_BOARDS = {
+  10: {
+    snakes:  { 99:78, 95:75, 92:88, 87:24, 64:60, 62:19, 56:53, 49:11, 47:26, 16:6  },
+    ladders: { 2:38,  7:14,  8:31,  15:26, 21:42, 28:84, 36:44, 51:67, 71:91, 78:98, 87:94 }
+  }
+};
+
+document.querySelectorAll('.die-card').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.die-card').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    dieFaces = dieMap[btn.dataset.die];
+    updateDieColors();
+  });
+});
+
+function updateDieColors() {
+  document.querySelectorAll('.die-card').forEach(card => {
+    const isActive = card.classList.contains('active');
+    card.querySelectorAll('circle, rect, path, ellipse, line').forEach(el => {
+      const s = el.getAttribute('stroke');
+      const f = el.getAttribute('fill');
+      if (s && s !== 'none' && !s.includes('rgba') && !s.includes('white'))
+        el.setAttribute('stroke', isActive ? 'rgba(255,255,255,0.5)' : '#8e8e93');
+      if (f && f !== 'none' && !f.includes('rgba') && f !== '#1A1A1A')
+        el.setAttribute('fill', isActive ? 'rgba(255,255,255,0.5)' : '#8e8e93');
+    });
+    card.querySelectorAll('text').forEach(el => el.setAttribute('fill', isActive ? 'rgba(255,255,255,0.7)' : '#8e8e93'));
+    const lbl = card.querySelector('.die-label');
+    if (lbl) lbl.style.color = isActive ? 'rgba(255,255,255,0.6)' : '#888';
+  });
+}
+
+document.getElementById('btn-snake').addEventListener('click', () => {
+  mode = 'snake';
+  document.getElementById('btn-snake').classList.add('active-mode');
+  document.getElementById('btn-ladder').classList.remove('active-mode');
+  document.getElementById('hint-text').textContent = 'drag from one square to another to place a snake';
+});
+
+document.getElementById('btn-ladder').addEventListener('click', () => {
+  mode = 'ladder';
+  document.getElementById('btn-ladder').classList.add('active-mode');
+  document.getElementById('btn-snake').classList.remove('active-mode');
+  document.getElementById('hint-text').textContent = 'drag from one square to another to place a ladder';
+});
+
+document.getElementById('size-slider').addEventListener('input', e => {
+  N = parseInt(e.target.value);
+  document.getElementById('size-out').textContent = `${N} x ${N}`;
+  connectors = []; history = [];
+  cancelSim();
+  buildGrid();
+  renderConnectorList();
+});
+
+document.getElementById('clear-btn').addEventListener('click', () => {
+  history.push([...connectors]);
+  connectors = [];
+  cancelSim();
+  clearResults();
+  buildGrid();
+  renderConnectorList();
+});
+
+document.getElementById('undo-btn').addEventListener('click', () => {
+  if (history.length === 0) return;
+  connectors = history.pop();
+  buildGrid();
+  redrawOverlay();
+  renderConnectorList();
+});
+
+document.getElementById('random-btn').addEventListener('click', () => {
+  history.push([...connectors]);
+  N = 10;
+  document.getElementById('size-slider').value = 10;
+  document.getElementById('size-out').textContent = '10 x 10';
+  const b = CLASSIC_BOARDS[10];
+  connectors = [];
+  Object.entries(b.snakes).forEach(([from, to]) => connectors.push({ from: parseInt(from), to: parseInt(to), type: 'snake' }));
+  Object.entries(b.ladders).forEach(([from, to]) => connectors.push({ from: parseInt(from), to: parseInt(to), type: 'ladder' }));
+  buildGrid();
+  redrawOverlay();
+  renderConnectorList();
+});
+
+function clearResults() {
+  document.getElementById('res-mean').textContent = '--';
+  document.getElementById('res-std').textContent = '--';
+  document.getElementById('sim-block').style.display = 'none';
+  document.getElementById('prob-block').style.display = 'none';
+  clearHist();
+}
+
+function cellToSquare(row, col) {
+  const r = N - 1 - row;
+  return r % 2 === 0 ? r * N + col + 1 : r * N + (N - col);
+}
+
+function squareToCell(sq) {
+  const r = Math.floor((sq - 1) / N);
+  const pos = (sq - 1) % N;
+  const row = N - 1 - r;
+  const col = r % 2 === 0 ? pos : N - 1 - pos;
+  return { row, col };
+}
+
+function getSquareFromPoint(x, y) {
+  const grid = document.getElementById('grid');
+  const rect = grid.getBoundingClientRect();
+  const cellW = rect.width / N;
+  const cellH = rect.height / N;
+  const col = Math.floor((x - rect.left) / cellW);
+  const row = Math.floor((y - rect.top) / cellH);
+  if (col < 0 || col >= N || row < 0 || row >= N) return null;
+  return cellToSquare(row, col);
+}
+
+function getCellCenter(sq) {
+  const { row, col } = squareToCell(sq);
+  const grid = document.getElementById('grid');
+  const rect = grid.getBoundingClientRect();
+  const cellW = rect.width / N;
+  const cellH = rect.height / N;
+  return { x: col * cellW + cellW / 2, y: row * cellH + cellH / 2, w: cellW };
+}
+
+function getCellRect(sq) {
+  const { row, col } = squareToCell(sq);
+  const grid = document.getElementById('grid');
+  const gridRect = grid.getBoundingClientRect();
+  const wrapRect = document.getElementById('board-wrap').getBoundingClientRect();
+  const cellW = gridRect.width / N;
+  const cellH = gridRect.height / N;
+  return {
+    x: (gridRect.left - wrapRect.left) + col * cellW,
+    y: (gridRect.top - wrapRect.top) + row * cellH,
+    w: cellW, h: cellH
+  };
+}
+
+function buildGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  grid.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
+  grid.style.gridTemplateRows = `repeat(${N}, 1fr)`;
+  for (let row = 0; row < N; row++) {
+    for (let col = 0; col < N; col++) {
+      const sq = cellToSquare(row, col);
+      const div = document.createElement('div');
+      div.className = 'sq' + ((row + col) % 2 === 0 ? ' light' : '');
+      if (sq === N * N) div.classList.add('finish');
+      if (sq === 1) div.classList.add('start-sq');
+      div.dataset.sq = sq;
+      const num = document.createElement('span');
+      num.textContent = sq;
+      div.appendChild(num);
+      grid.appendChild(div);
+    }
+  }
+  if (tokenEl) { tokenEl.remove(); tokenEl = null; }
+  redrawOverlay();
+}
+
+function renderConnectorList() {
+  const list = document.getElementById('connector-list');
+  const noMsg = document.getElementById('no-connectors-msg');
+  list.innerHTML = '';
+  if (connectors.length === 0) {
+    list.appendChild(Object.assign(document.createElement('div'), {
+      style: 'font-size:10px;color:#C8C7C0;padding:4px 0;',
+      textContent: 'none placed yet'
+    }));
+    return;
+  }
+  connectors.forEach((c, i) => {
+    const row = document.createElement('div');
+    row.className = 'connector-row';
+    const dot = document.createElement('span');
+    dot.className = 'type-dot';
+    dot.style.background = c.type === 'snake' ? '#C0392B' : '#27AE60';
+    const label = document.createElement('span');
+    label.textContent = `${c.from} → ${c.to}`;
+    const del = document.createElement('button');
+    del.className = 'del-btn';
+    del.textContent = '×';
+    del.title = 'remove';
+    del.addEventListener('click', () => {
+      history.push([...connectors]);
+      connectors.splice(i, 1);
+      buildGrid();
+      redrawOverlay();
+      renderConnectorList();
+    });
+    row.appendChild(dot);
+    row.appendChild(label);
+    row.appendChild(del);
+    list.appendChild(row);
+  });
+}
+
+const boardWrap = document.getElementById('board-wrap');
+
+boardWrap.addEventListener('mousedown', e => {
+  if (simRunning) return;
+  const sq = getSquareFromPoint(e.clientX, e.clientY);
+  if (!sq) return;
+  isDragging = true;
+  dragStartSq = sq;
+  const grid = document.getElementById('grid');
+  const rect = grid.getBoundingClientRect();
+  dragStartPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  dragCurrentPos = { ...dragStartPos };
+  highlightSquare(sq, true);
+  e.preventDefault();
+});
+
+window.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const grid = document.getElementById('grid');
+  const rect = grid.getBoundingClientRect();
+  dragCurrentPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  drawPreview();
+});
+
+window.addEventListener('mouseup', e => {
+  if (!isDragging) return;
+  isDragging = false;
+  highlightSquare(dragStartSq, false);
+  clearPreview();
+  const endSq = getSquareFromPoint(e.clientX, e.clientY);
+  if (!endSq || endSq === dragStartSq) { dragStartSq = null; return; }
+  if (mode === 'snake' && endSq >= dragStartSq) {
+    document.getElementById('hint-text').textContent = 'snakes must go downward -- try again';
+    dragStartSq = null; return;
+  }
+  if (mode === 'ladder' && endSq <= dragStartSq) {
+    document.getElementById('hint-text').textContent = 'ladders must go upward -- try again';
+    dragStartSq = null; return;
+  }
+  const conflict = connectors.find(c => c.from === dragStartSq || c.from === endSq);
+  if (conflict) {
+    document.getElementById('hint-text').textContent = 'that square already has a connector -- try again';
+    dragStartSq = null; return;
+  }
+  history.push([...connectors]);
+  connectors.push({ from: dragStartSq, to: endSq, type: mode });
+  document.getElementById('hint-text').textContent =
+    mode === 'snake' ? 'drag from one square to another to place a snake'
+                     : 'drag from one square to another to place a ladder';
+  dragStartSq = null;
+  redrawOverlay();
+  renderConnectorList();
+});
+
+function highlightSquare(sq, on) {
+  document.querySelectorAll('.sq').forEach(el => {
+    if (parseInt(el.dataset.sq) === sq)
+      on ? el.classList.add('highlight') : el.classList.remove('highlight');
+  });
+}
+
+function drawPreview() {
+  const svg = document.getElementById('preview');
+  svg.innerHTML = '';
+  const grid = document.getElementById('grid');
+  svg.setAttribute('viewBox', `0 0 ${grid.offsetWidth} ${grid.offsetHeight}`);
+  if (!dragStartPos || !dragCurrentPos) return;
+  const cellW = grid.offsetWidth / N;
+  if (mode === 'snake') drawSnake(svg, dragStartPos.x, dragStartPos.y, dragCurrentPos.x, dragCurrentPos.y, cellW, 0.45);
+  else drawLadder(svg, dragStartPos.x, dragStartPos.y, dragCurrentPos.x, dragCurrentPos.y, cellW, 0.45);
+}
+
+function clearPreview() { document.getElementById('preview').innerHTML = ''; }
+
+function drawSnake(svg, x1, y1, x2, y2, cellW, opacity) {
+  const dx = x2-x1, dy = y2-y1;
+  const len = Math.sqrt(dx*dx+dy*dy);
+  if (len < 2) return;
+  const ux = dx/len, uy = dy/len;
+  const nx = -uy, ny = ux;
+  const amp = cellW * 0.32;
+  const d = `M${x1},${y1} C${x1+dx*0.25+nx*amp},${y1+dy*0.25+ny*amp} ${x1+dx*0.65-nx*amp},${y1+dy*0.65-ny*amp} ${x2},${y2}`;
+
+  const outline = document.createElementNS('http://www.w3.org/2000/svg','path');
+  outline.setAttribute('d',d); outline.setAttribute('stroke','#8B2A2A');
+  outline.setAttribute('stroke-width',cellW*0.22); outline.setAttribute('stroke-linecap','round');
+  outline.setAttribute('fill','none'); outline.setAttribute('opacity',opacity);
+  svg.appendChild(outline);
+
+  const body = document.createElementNS('http://www.w3.org/2000/svg','path');
+  body.setAttribute('d',d); body.setAttribute('stroke','#C0392B');
+  body.setAttribute('stroke-width',cellW*0.14); body.setAttribute('stroke-linecap','round');
+  body.setAttribute('fill','none'); body.setAttribute('opacity',opacity);
+  svg.appendChild(body);
+
+  const highlight = document.createElementNS('http://www.w3.org/2000/svg','path');
+  highlight.setAttribute('d',d); highlight.setAttribute('stroke','#F0705A');
+  highlight.setAttribute('stroke-width',cellW*0.05); highlight.setAttribute('stroke-linecap','round');
+  highlight.setAttribute('fill','none'); highlight.setAttribute('opacity',opacity * 0.7);
+  svg.appendChild(highlight);
+
+  const headR = cellW*0.12;
+  const angle = Math.atan2(dy,dx)*180/Math.PI+90;
+  const headOuter = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+  headOuter.setAttribute('cx',x1); headOuter.setAttribute('cy',y1);
+  headOuter.setAttribute('rx',headR*1.5); headOuter.setAttribute('ry',headR*1.1);
+  headOuter.setAttribute('transform',`rotate(${angle} ${x1} ${y1})`);
+  headOuter.setAttribute('fill','#8B2A2A'); headOuter.setAttribute('opacity',opacity);
+  svg.appendChild(headOuter);
+
+  const head = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+  head.setAttribute('cx',x1); head.setAttribute('cy',y1);
+  head.setAttribute('rx',headR*1.3); head.setAttribute('ry',headR);
+  head.setAttribute('transform',`rotate(${angle} ${x1} ${y1})`);
+  head.setAttribute('fill','#C0392B'); head.setAttribute('opacity',opacity);
+  svg.appendChild(head);
+
+  const headShine = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+  headShine.setAttribute('cx',x1 + nx*headR*0.3); headShine.setAttribute('cy',y1 + ny*headR*0.3);
+  headShine.setAttribute('rx',headR*0.5); headShine.setAttribute('ry',headR*0.3);
+  headShine.setAttribute('transform',`rotate(${angle} ${x1 + nx*headR*0.3} ${y1 + ny*headR*0.3})`);
+  headShine.setAttribute('fill','rgba(255,255,255,0.2)'); headShine.setAttribute('opacity',opacity);
+  svg.appendChild(headShine);
+
+  const eye = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  eye.setAttribute('cx',x1+nx*headR*0.55); eye.setAttribute('cy',y1+ny*headR*0.55);
+  eye.setAttribute('r',headR*0.3); eye.setAttribute('fill','#1a0505');
+  eye.setAttribute('opacity',opacity); svg.appendChild(eye);
+
+  const eyeShine = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  eyeShine.setAttribute('cx',x1+nx*headR*0.55 + headR*0.1); eyeShine.setAttribute('cy',y1+ny*headR*0.55 - headR*0.1);
+  eyeShine.setAttribute('r',headR*0.1); eyeShine.setAttribute('fill','rgba(255,255,255,0.6)');
+  eyeShine.setAttribute('opacity',opacity); svg.appendChild(eyeShine);
+
+  [[1],[-1]].forEach(([s]) => {
+    const t = document.createElementNS('http://www.w3.org/2000/svg','line');
+    t.setAttribute('x1',x2); t.setAttribute('y1',y2);
+    t.setAttribute('x2',x2+(-ux+nx*s*0.7)*headR*1.4);
+    t.setAttribute('y2',y2+(-uy+ny*s*0.7)*headR*1.4);
+    t.setAttribute('stroke','#F0705A'); t.setAttribute('stroke-width',headR*0.32);
+    t.setAttribute('stroke-linecap','round'); t.setAttribute('opacity',opacity);
+    svg.appendChild(t);
+  });
+}
+
+function drawLadder(svg, x1, y1, x2, y2, cellW, opacity) {
+  const dx = x2-x1, dy = y2-y1;
+  const len = Math.sqrt(dx*dx+dy*dy);
+  if (len < 2) return;
+  const nx = -dy/len, ny = dx/len;
+  const off = cellW*0.08;
+
+  [-1,1].forEach(s => {
+    const railOuter = document.createElementNS('http://www.w3.org/2000/svg','line');
+    railOuter.setAttribute('x1',x1+nx*off*s*1.15); railOuter.setAttribute('y1',y1+ny*off*s*1.15);
+    railOuter.setAttribute('x2',x2+nx*off*s*1.15); railOuter.setAttribute('y2',y2+ny*off*s*1.15);
+    railOuter.setAttribute('stroke','#4A3510'); railOuter.setAttribute('stroke-width',cellW*0.072);
+    railOuter.setAttribute('stroke-linecap','round'); railOuter.setAttribute('opacity',opacity);
+    svg.appendChild(railOuter);
+
+    const rail = document.createElementNS('http://www.w3.org/2000/svg','line');
+    rail.setAttribute('x1',x1+nx*off*s); rail.setAttribute('y1',y1+ny*off*s);
+    rail.setAttribute('x2',x2+nx*off*s); rail.setAttribute('y2',y2+ny*off*s);
+    rail.setAttribute('stroke','#8B6320'); rail.setAttribute('stroke-width',cellW*0.052);
+    rail.setAttribute('stroke-linecap','round'); rail.setAttribute('opacity',opacity);
+    svg.appendChild(rail);
+
+    const railShine = document.createElementNS('http://www.w3.org/2000/svg','line');
+    railShine.setAttribute('x1',x1+nx*off*s*0.7); railShine.setAttribute('y1',y1+ny*off*s*0.7);
+    railShine.setAttribute('x2',x2+nx*off*s*0.7); railShine.setAttribute('y2',y2+ny*off*s*0.7);
+    railShine.setAttribute('stroke','#C8973A'); railShine.setAttribute('stroke-width',cellW*0.016);
+    railShine.setAttribute('stroke-linecap','round'); railShine.setAttribute('opacity',opacity*0.8);
+    svg.appendChild(railShine);
+  });
+
+  const numRungs = Math.max(3, Math.floor(len / (cellW * 0.5)));
+  for (let i = 1; i < numRungs; i++) {
+    const t = i/numRungs;
+    const rungOuter = document.createElementNS('http://www.w3.org/2000/svg','line');
+    rungOuter.setAttribute('x1',x1+dx*t+nx*off*1.15); rungOuter.setAttribute('y1',y1+dy*t+ny*off*1.15);
+    rungOuter.setAttribute('x2',x1+dx*t-nx*off*1.15); rungOuter.setAttribute('y2',y1+dy*t-ny*off*1.15);
+    rungOuter.setAttribute('stroke','#4A3510'); rungOuter.setAttribute('stroke-width',cellW*0.058);
+    rungOuter.setAttribute('stroke-linecap','round'); rungOuter.setAttribute('opacity',opacity);
+    svg.appendChild(rungOuter);
+
+    const rung = document.createElementNS('http://www.w3.org/2000/svg','line');
+    rung.setAttribute('x1',x1+dx*t+nx*off); rung.setAttribute('y1',y1+dy*t+ny*off);
+    rung.setAttribute('x2',x1+dx*t-nx*off); rung.setAttribute('y2',y1+dy*t-ny*off);
+    rung.setAttribute('stroke','#8B6320'); rung.setAttribute('stroke-width',cellW*0.04);
+    rung.setAttribute('stroke-linecap','round'); rung.setAttribute('opacity',opacity);
+    svg.appendChild(rung);
+
+    const rungShine = document.createElementNS('http://www.w3.org/2000/svg','line');
+    rungShine.setAttribute('x1',x1+dx*t+nx*off*0.7); rungShine.setAttribute('y1',y1+dy*t+ny*off*0.7);
+    rungShine.setAttribute('x2',x1+dx*t-nx*off*0.7); rungShine.setAttribute('y2',y1+dy*t-ny*off*0.7);
+    rungShine.setAttribute('stroke','#C8973A'); rungShine.setAttribute('stroke-width',cellW*0.013);
+    rungShine.setAttribute('stroke-linecap','round'); rungShine.setAttribute('opacity',opacity*0.7);
+    svg.appendChild(rungShine);
+  }
+}
+
+function redrawOverlay() {
+  const svg = document.getElementById('overlay');
+  svg.innerHTML = '';
+  const grid = document.getElementById('grid');
+  svg.setAttribute('viewBox',`0 0 ${grid.offsetWidth} ${grid.offsetHeight}`);
+  connectors.forEach(c => {
+    const f = getCellCenter(c.from), t = getCellCenter(c.to);
+    if (c.type === 'snake') drawSnake(svg,f.x,f.y,t.x,t.y,f.w,1);
+    else drawLadder(svg,f.x,f.y,t.x,t.y,f.w,1);
+  });
+}
+
+function makeToken(cellW, colour) {
+  const s = Math.max(12, cellW * 0.48);
+  const svg = document.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('width', s); svg.setAttribute('height', s * 1.1);
+  svg.setAttribute('viewBox','0 0 40 44');
+
+  const shadow = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+  shadow.setAttribute('cx','20'); shadow.setAttribute('cy','42');
+  shadow.setAttribute('rx','12'); shadow.setAttribute('ry','2.5');
+  shadow.setAttribute('fill','rgba(0,0,0,0.15)');
+  svg.appendChild(shadow);
+
+  const discOuter = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+  discOuter.setAttribute('cx','20'); discOuter.setAttribute('cy','32');
+  discOuter.setAttribute('rx','15'); discOuter.setAttribute('ry','6');
+  discOuter.setAttribute('fill', colour.base);
+  svg.appendChild(discOuter);
+
+  const disc = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+  disc.setAttribute('cx','20'); disc.setAttribute('cy','30');
+  disc.setAttribute('rx','15'); disc.setAttribute('ry','6');
+  disc.setAttribute('fill', colour.body);
+  svg.appendChild(disc);
+
+  const ring1 = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+  ring1.setAttribute('cx','20'); ring1.setAttribute('cy','30');
+  ring1.setAttribute('rx','10'); ring1.setAttribute('ry','4');
+  ring1.setAttribute('fill', colour.top);
+  svg.appendChild(ring1);
+
+  const ring2 = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+  ring2.setAttribute('cx','20'); ring2.setAttribute('cy','30');
+  ring2.setAttribute('rx','5'); ring2.setAttribute('ry','2');
+  ring2.setAttribute('fill', colour.body);
+  svg.appendChild(ring2);
+
+  const discShine = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+  discShine.setAttribute('cx','15'); discShine.setAttribute('cy','27');
+  discShine.setAttribute('rx','6'); discShine.setAttribute('ry','2.5');
+  discShine.setAttribute('fill','rgba(255,255,255,0.28)');
+  svg.appendChild(discShine);
+
+  return { svg, s };
+}
+
+function placeToken(sq) {
+  const wrap = document.getElementById('board-wrap');
+  if (tokenEl) { tokenEl.remove(); tokenEl = null; }
+  if (sq === null) return;
+  const cell = getCellRect(sq);
+  const colour = TOKEN_COLOURS[currentTokenColour];
+  const { svg, s } = makeToken(cell.w, colour);
+  svg.style.position = 'absolute';
+  svg.style.left = (cell.x + cell.w/2 - s/2) + 'px';
+  svg.style.top  = (cell.y + cell.h/2 - s*0.55) + 'px';
+  svg.style.pointerEvents = 'none';
+  svg.style.zIndex = '10';
+  wrap.appendChild(svg);
+  tokenEl = svg;
+}
+
+function gaussianElimination(A, b) {
+  const n = b.length;
+  const aug = A.map((row,i) => [...row,b[i]]);
+  for (let col=0;col<n;col++) {
+    let maxRow=col;
+    for (let row=col+1;row<n;row++)
+      if (Math.abs(aug[row][col])>Math.abs(aug[maxRow][col])) maxRow=row;
+    [aug[col],aug[maxRow]]=[aug[maxRow],aug[col]];
+    const piv=aug[col][col];
+    if (Math.abs(piv)<1e-12) continue;
+    for (let j=col;j<=n;j++) aug[col][j]/=piv;
+    for (let row=0;row<n;row++) {
+      if (row===col) continue;
+      const f=aug[row][col];
+      for (let j=col;j<=n;j++) aug[row][j]-=f*aug[col][j];
+    }
+  }
+  return aug.map(row=>row[n]);
+}
+
+function buildMoveFunction() {
+  const snakes={}, ladders={};
+  connectors.forEach(c => {
+    if (c.type==='snake') snakes[c.from]=c.to;
+    else ladders[c.from]=c.to;
+  });
+  return sq => sq in snakes ? snakes[sq] : sq in ladders ? ladders[sq] : sq;
+}
+
+function runMarkov() {
+  const total = N*N;
+  const move = buildMoveFunction();
+  const p = 1/dieFaces.length;
+  const states = Array.from({length:total-1},(_,i)=>i+1);
+  const index = {}; states.forEach((s,i)=>index[s]=i);
+  const n = states.length;
+  const P = Array.from({length:n},()=>new Array(n).fill(0));
+  for (const sq of states)
+    for (const roll of dieFaces) {
+      const dest = sq+roll>total ? sq : move(sq+roll);
+      if (dest<total) P[index[sq]][index[dest]]+=p;
+    }
+  const IminusP = P.map((row,i)=>row.map((v,j)=>(i===j?1:0)-v));
+  const k = gaussianElimination(IminusP.map(r=>[...r]),Array(n).fill(1));
+  const Pk = P.map(row=>row.reduce((s,v,j)=>s+v*k[j],0));
+  const m = gaussianElimination(IminusP.map(r=>[...r]),k.map((ki,i)=>1+2*Pk[i]));
+  const variance = Math.max(0,m[index[1]]-k[index[1]]**2);
+  return { k, index, mean: k[index[1]], std: Math.sqrt(variance) };
+}
+
+[document.getElementById('calc-btn'), document.getElementById('calc-btn2')].forEach(btn => {
+  btn.addEventListener('click', () => {
+    const { mean, std } = runMarkov();
+    document.getElementById('res-mean').textContent = mean.toFixed(1);
+    document.getElementById('res-std').textContent = std.toFixed(1);
+  });
+});
+
+function clearHist() {
+  const canvas = document.getElementById('hist');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  document.getElementById('hist-min').textContent='';
+  document.getElementById('hist-mid').textContent='';
+  document.getElementById('hist-max').textContent='';
+  barHeights = [];
+}
+
+document.getElementById('monte-btn').addEventListener('click', () => {
+  const total = N*N;
+  const move = buildMoveFunction();
+
+  function simulate() {
+    let sq=1, steps=0;
+    while (sq<total) {
+      const roll = dieFaces[Math.floor(Math.random()*dieFaces.length)];
+      sq = (sq+roll>total) ? sq : move(sq+roll);
+      steps++;
+      if (steps>500000) break;
+    }
+    return steps;
+  }
+
+  const N_SIMS = 1000;
+  const results = [];
+  const btn = document.getElementById('monte-btn');
+  btn.disabled = true;
+  btn.textContent = 'running...';
+
+  const canvas = document.getElementById('hist');
+  canvas.width = canvas.offsetWidth * window.devicePixelRatio;
+  canvas.height = canvas.offsetHeight * window.devicePixelRatio;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+  const W = canvas.offsetWidth, H = canvas.offsetHeight;
+
+  const NBINS = 30;
+  let targetHeights = new Array(NBINS).fill(0);
+  barHeights = new Array(NBINS).fill(0);
+  let globalMin = Infinity, globalMax = -Infinity;
+  let animFrame = null;
+
+  function computeBins() {
+    if (results.length < 2) return;
+    const min = Math.min(...results);
+    const max = Math.max(...results);
+    globalMin = min; globalMax = max;
+    const range = max - min || 1;
+    const binSize = range / NBINS;
+    const counts = new Array(NBINS).fill(0);
+    results.forEach(v => {
+      const b = Math.min(NBINS-1, Math.floor((v-min)/binSize));
+      counts[b]++;
+    });
+    const maxCount = Math.max(...counts);
+    targetHeights = counts.map(c => c/maxCount);
+  }
+
+  function animateBars() {
+    for (let i=0;i<NBINS;i++) {
+      barHeights[i] += (targetHeights[i] - barHeights[i]) * 0.18;
+    }
+    ctx.clearRect(0,0,W,H);
+    const barW = W/NBINS;
+    const mean = results.length ? results.reduce((a,b)=>a+b,0)/results.length : 0;
+    const range = globalMax - globalMin || 1;
+    barHeights.forEach((h,idx) => {
+      if (h <= 0.001) return;
+      const barH = h * H;
+      const binCenter = globalMin + (idx+0.5)*(range/NBINS);
+      const t = Math.min(1, Math.abs(binCenter-mean)/(range*0.5));
+      const r = Math.round(160+t*60), g = Math.round(80-t*60), b2 = Math.round(60-t*40);
+      ctx.fillStyle = `rgb(${r},${g},${b2})`;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(idx*barW+1, H-barH, barW-2, barH, [2,2,0,0]);
+      else ctx.rect(idx*barW+1, H-barH, barW-2, barH);
+      ctx.fill();
+    });
+    document.getElementById('hist-min').textContent = isFinite(globalMin) ? globalMin : '';
+    document.getElementById('hist-mid').textContent = results.length ? Math.round(results.reduce((a,b)=>a+b,0)/results.length) : '';
+    document.getElementById('hist-max').textContent = isFinite(globalMax) ? globalMax : '';
+    animFrame = requestAnimationFrame(animateBars);
+  }
+
+  animFrame = requestAnimationFrame(animateBars);
+
+  let i = 0;
+  const BATCH = 20;
+  function step() {
+    for (let b=0;b<BATCH&&i<N_SIMS;b++,i++) results.push(simulate());
+    computeBins();
+    if (i < N_SIMS) {
+      requestAnimationFrame(step);
+    } else {
+      setTimeout(() => {
+        cancelAnimationFrame(animFrame);
+        btn.disabled = false;
+        btn.textContent = 'monte carlo';
+
+        const mean = results.reduce((a,b)=>a+b,0)/results.length;
+        const withinMean = results.filter(r => r <= mean).length;
+        const prob = (withinMean / results.length * 100).toFixed(1);
+        document.getElementById('prob-block').style.display = 'block';
+        document.getElementById('res-prob').textContent = prob + '%';
+      }, 600);
+    }
+  }
+  requestAnimationFrame(step);
+});
+
+function cancelSim() {
+  simCancel = true;
+  simRunning = false;
+  placeToken(null);
+  document.getElementById('sim-btn').textContent = 'simulate run';
+  document.getElementById('sim-btn').disabled = false;
+}
+
+document.getElementById('sim-btn').addEventListener('click', () => {
+  if (simRunning) { cancelSim(); return; }
+  const total = N*N;
+  const move = buildMoveFunction();
+  const btn = document.getElementById('sim-btn');
+
+  const prev = currentTokenColour;
+  let next = prev;
+  while (next === prev) next = Math.floor(Math.random()*TOKEN_COLOURS.length);
+  currentTokenColour = next;
+
+  const path = [1];
+  let sq = 1, steps = 0;
+  while (sq < total && steps < 50000) {
+    const roll = dieFaces[Math.floor(Math.random()*dieFaces.length)];
+    const raw = sq+roll;
+    const nextSq = raw>total ? sq : move(raw);
+    path.push(nextSq);
+    sq = nextSq;
+    steps++;
+  }
+
+  simRunning = true;
+  simCancel = false;
+  btn.textContent = 'stop';
+
+  document.getElementById('sim-block').style.display = 'block';
+  document.getElementById('sim-steps').textContent = '0';
+
+  let idx = 0;
+  function step() {
+    if (simCancel || idx >= path.length) {
+      simRunning = false; simCancel = false;
+      document.getElementById('sim-steps').textContent = path.length - 1;
+      setTimeout(() => placeToken(null), 800);
+      btn.textContent = 'simulate run';
+      btn.disabled = false;
+      return;
+    }
+    placeToken(path[idx]);
+    document.getElementById('sim-steps').textContent = Math.max(0, idx);
+    idx++;
+    setTimeout(step, 80);
+  }
+  step();
+});
+
+window.addEventListener('resize', redrawOverlay);
+buildGrid();
+</script>
+</body>
+</html>

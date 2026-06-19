@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pythia</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', sans-serif;
+  background: #F5F5F7;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.app {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.logo { font-size: 18px; font-weight: 600; letter-spacing: -0.5px; color: #1d1d1f; }
+.logo span { color: #8e8e93; font-weight: 400; }
+
+.main {
+  display: grid;
+  grid-template-columns: 130px 1fr 155px;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.left-panel {
+  background: #fff;
+  border-radius: 18px;
+  border: 0.5px solid rgba(0,0,0,0.08);
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow: hidden;
+}
+
+.panel-title {
+  font-size: 10px;
+  color: #8e8e93;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+
+.die-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+
+.die-card {
+  aspect-ratio: 1;
+  background: #F7F7F8;
+  border-radius: 11px;
+  border: 0.5px solid rgba(0,0,0,0.07);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.12s;
+}
+
+.die-card.active { background: #1d1d1f; border-color: #1d1d1f; }
+.die-card:hover:not(.active) { background: #EFEFEF; }
+
+.piece-btns { display: flex; flex-direction: column; gap: 7px; }
+
+.piece-btn {
+  width: 100%;
+  padding: 9px 8px;
+  border-radius: 12px;
+  border: 0.5px solid rgba(0,0,0,0.08);
+  background: #F7F7F8;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: #8e8e93;
+  font-weight: 500;
+  transition: all 0.12s;
+  user-select: none;
+}
+
+.piece-btn.snake-btn { background: #FFF0EE; border-color: #FFCDC8; color: #C0392B; }
+.piece-btn.ladder-btn { background: #F0F7EE; border-color: #B8E0BE; color: #27AE60; }
+.piece-btn.active-mode { box-shadow: 0 0 0 2px #1d1d1f; }
+
+.hint-box {
+  background: #F7F7F8;
+  border-radius: 10px;
+  padding: 9px 10px;
+  font-size: 10px;
+  color: #8e8e93;
+  line-height: 1.5;
+}
+
+.board-card {
+  background: #fff;
+  border-radius: 20px;
+  border: 0.5px solid rgba(0,0,0,0.08);
+  padding: 14px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.size-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.size-label { font-size: 11px; color: #8e8e93; font-weight: 500; }
+.size-val { font-size: 11px; font-weight: 600; color: #1d1d1f; min-width: 32px; text-align: right; }
+
+input[type=range] {
+  flex: 1;
+  -webkit-appearance: none;
+  height: 3px;
+  background: #E0E0E5;
+  border-radius: 2px;
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px; height: 15px;
+  border-radius: 50%;
+  background: #1d1d1f;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+.board-wrap {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  cursor: crosshair;
+}
+
+.board-grid {
+  display: grid;
+  gap: 3px;
+  width: 100%;
+  height: 100%;
+}
+
+.sq {
+  border-radius: 6px;
+  background: #F7F7F8;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-end;
+  padding: 3px 4px;
+  font-size: 9px;
+  color: #c8c8cc;
+  font-weight: 500;
+  user-select: none;
+  position: relative;
+  min-height: 0;
+}
+
+.sq.light { background: #fff; border: 0.5px solid rgba(0,0,0,0.05); }
+.sq.finish { background: #EBF3FF; color: #185FA5; }
+.sq.start-sq { background: #F0F7EE; color: #3B6D11; }
+.sq.highlight { background: #FFF9E6; border: 1.5px solid #F0B429 !important; }
+
+.overlay-svg {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.drag-preview {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  pointer-events: none;
+  overflow: visible;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.side-card {
+  background: #fff;
+  border-radius: 18px;
+  border: 0.5px solid rgba(0,0,0,0.08);
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.result-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 5px 0;
+  border-bottom: 0.5px solid rgba(0,0,0,0.05);
+}
+.result-row:last-child { border-bottom: none; }
+.rl { font-size: 11px; color: #8e8e93; }
+.rv { font-size: 15px; font-weight: 600; color: #1d1d1f; }
+
+.calc-btn {
+  width: 100%;
+  background: #1d1d1f;
+  color: #fff;
+  border: none;
+  border-radius: 13px;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.12s;
+}
+.calc-btn:hover { opacity: 0.85; }
+
+.clear-btn {
+  width: 100%;
+  background: none;
+  color: #8e8e93;
+  border: 0.5px solid rgba(0,0,0,0.1);
+  border-radius: 13px;
+  padding: 9px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-top: 6px;
+}
+.clear-btn:hover { background: #F5F5F7; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <div class="header">
+    <div class="logo">Pythia <span>/ board builder</span></div>
+  </div>
+
+  <div class="main">
+
+    <div class="left-panel">
+      <div>
+        <div class="panel-title">die</div>
+        <div class="die-grid">
+          <div class="die-card active" data-die="coin" title="coin">
+            <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+              <ellipse cx="13" cy="16" rx="9" ry="5" stroke="#fff" stroke-width="1.3"/>
+              <ellipse cx="13" cy="12" rx="9" ry="5" fill="#1d1d1f" stroke="#fff" stroke-width="1.3"/>
+              <text x="13" y="14.2" text-anchor="middle" font-size="4" fill="#fff" font-family="-apple-system,sans-serif" font-weight="700">COIN</text>
+            </svg>
+          </div>
+          <div class="die-card" data-die="d4" title="d4">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <path d="M11 3 L19 18 L3 18 Z" stroke="#8e8e93" stroke-width="1.3" stroke-linejoin="round"/>
+              <circle cx="11" cy="9" r="1.1" fill="#8e8e93"/>
+              <circle cx="8.5" cy="14.5" r="1.1" fill="#8e8e93"/>
+              <circle cx="13.5" cy="14.5" r="1.1" fill="#8e8e93"/>
+              <circle cx="11" cy="13.5" r="1.1" fill="#8e8e93"/>
+            </svg>
+          </div>
+          <div class="die-card" data-die="d6" title="d6">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <rect x="2" y="2" width="18" height="18" rx="4.5" stroke="#8e8e93" stroke-width="1.3"/>
+              <circle cx="6.5" cy="6.5" r="1.3" fill="#8e8e93"/>
+              <circle cx="15.5" cy="6.5" r="1.3" fill="#8e8e93"/>
+              <circle cx="6.5" cy="15.5" r="1.3" fill="#8e8e93"/>
+              <circle cx="15.5" cy="15.5" r="1.3" fill="#8e8e93"/>
+              <circle cx="6.5" cy="11" r="1.3" fill="#8e8e93"/>
+              <circle cx="15.5" cy="11" r="1.3" fill="#8e8e93"/>
+            </svg>
+          </div>
+          <div class="die-card" data-die="d8" title="d8">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <rect x="2" y="2" width="18" height="18" rx="4.5" stroke="#8e8e93" stroke-width="1.3"/>
+              <circle cx="6.5" cy="6.5" r="1.1" fill="#8e8e93"/>
+              <circle cx="15.5" cy="6.5" r="1.1" fill="#8e8e93"/>
+              <circle cx="6.5" cy="15.5" r="1.1" fill="#8e8e93"/>
+              <circle cx="15.5" cy="15.5" r="1.1" fill="#8e8e93"/>
+              <circle cx="11" cy="6.5" r="1.1" fill="#8e8e93"/>
+              <circle cx="11" cy="15.5" r="1.1" fill="#8e8e93"/>
+              <circle cx="6.5" cy="11" r="1.1" fill="#8e8e93"/>
+              <circle cx="15.5" cy="11" r="1.1" fill="#8e8e93"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <div class="panel-title">pieces</div>
+        <div class="piece-btns">
+          <div class="piece-btn snake-btn active-mode" id="btn-snake">
+            <svg width="20" height="26" viewBox="0 0 22 28" fill="none">
+              <path d="M11 25 C5 21 3 15 7 11 C11 7 15 9 15 5 C15 2 12 1 9 2" stroke="#C0392B" stroke-width="3" stroke-linecap="round" fill="none"/>
+              <ellipse cx="9" cy="2" rx="2.5" ry="1.8" fill="#C0392B" transform="rotate(-15 9 2)"/>
+              <path d="M7.5 1 L6 0" stroke="#C0392B" stroke-width="1" stroke-linecap="round"/>
+              <path d="M8.5 0.5 L7.5 -0.5" stroke="#C0392B" stroke-width="1" stroke-linecap="round"/>
+            </svg>
+            snake
+          </div>
+          <div class="piece-btn ladder-btn" id="btn-ladder">
+            <svg width="16" height="26" viewBox="0 0 18 28" fill="none">
+              <line x1="3" y1="2" x2="3" y2="26" stroke="#7A6230" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="15" y1="2" x2="15" y2="26" stroke="#7A6230" stroke-width="2.5" stroke-linecap="round"/>
+              <line x1="3" y1="8" x2="15" y2="8" stroke="#9A7A3A" stroke-width="1.8" stroke-linecap="round"/>
+              <line x1="3" y1="14" x2="15" y2="14" stroke="#9A7A3A" stroke-width="1.8" stroke-linecap="round"/>
+              <line x1="3" y1="20" x2="15" y2="20" stroke="#9A7A3A" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+            ladder
+          </div>
+        </div>
+      </div>
+
+      <div class="hint-box" id="hint-text">drag from one square to another to place a snake</div>
+    </div>
+
+    <div class="board-card">
+      <div class="size-row">
+        <span class="size-label">size</span>
+        <input type="range" min="3" max="10" value="6" step="1" id="size-slider">
+        <span class="size-val" id="size-out">6 × 6</span>
+      </div>
+      <div class="board-wrap" id="board-wrap">
+        <div class="board-grid" id="grid"></div>
+        <svg class="overlay-svg" id="overlay"></svg>
+        <svg class="drag-preview" id="preview"></svg>
+      </div>
+    </div>
+
+    <div class="sidebar">
+      <div class="side-card">
+        <div class="panel-title">result</div>
+        <div class="result-row"><div class="rl">expected moves</div><div class="rv" id="res-mean">—</div></div>
+        <div class="result-row"><div class="rl">std deviation</div><div class="rv" id="res-std">—</div></div>
+      </div>
+      <button class="calc-btn" id="calc-btn">calculate</button>
+      <button class="clear-btn" id="clear-btn">clear board</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+let N = 6;
+let mode = 'snake';
+let connectors = [];
+let isDragging = false;
+let dragStartSq = null;
+let dragStartPos = null;
+let dragCurrentPos = null;
+const dieMap = { coin:[1,2], d4:[1,2,3,4], d6:[1,2,3,4,5,6], d8:[1,2,3,4,5,6,7,8] };
+let dieFaces = [1, 2];
+
+document.querySelectorAll('.die-card').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.die-card').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    dieFaces = dieMap[btn.dataset.die];
+    updateDieColors();
+  });
+});
+
+function updateDieColors() {
+  document.querySelectorAll('.die-card').forEach(card => {
+    const isActive = card.classList.contains('active');
+    card.querySelectorAll('circle, rect, path, ellipse').forEach(el => {
+      if (el.getAttribute('stroke') && el.getAttribute('stroke') !== 'none')
+        el.setAttribute('stroke', isActive ? '#fff' : '#8e8e93');
+      if (el.getAttribute('fill') && el.getAttribute('fill') !== 'none' && el.getAttribute('fill') !== '#1d1d1f')
+        el.setAttribute('fill', isActive ? '#fff' : '#8e8e93');
+    });
+    card.querySelectorAll('text').forEach(el => el.setAttribute('fill', '#fff'));
+  });
+}
+
+document.getElementById('btn-snake').addEventListener('click', () => {
+  mode = 'snake';
+  document.getElementById('btn-snake').classList.add('active-mode');
+  document.getElementById('btn-ladder').classList.remove('active-mode');
+  document.getElementById('hint-text').textContent = 'drag from one square to another to place a snake';
+});
+
+document.getElementById('btn-ladder').addEventListener('click', () => {
+  mode = 'ladder';
+  document.getElementById('btn-ladder').classList.add('active-mode');
+  document.getElementById('btn-snake').classList.remove('active-mode');
+  document.getElementById('hint-text').textContent = 'drag from one square to another to place a ladder';
+});
+
+document.getElementById('size-slider').addEventListener('input', e => {
+  N = parseInt(e.target.value);
+  document.getElementById('size-out').textContent = `${N} × ${N}`;
+  connectors = [];
+  buildGrid();
+});
+
+document.getElementById('clear-btn').addEventListener('click', () => {
+  connectors = [];
+  document.getElementById('res-mean').textContent = '—';
+  document.getElementById('res-std').textContent = '—';
+  buildGrid();
+});
+
+function cellToSquare(row, col) {
+  const r = N - 1 - row;
+  return r % 2 === 0 ? r * N + col + 1 : r * N + (N - col);
+}
+
+function squareToCell(sq) {
+  const r = Math.floor((sq - 1) / N);
+  const pos = (sq - 1) % N;
+  const row = N - 1 - r;
+  const col = r % 2 === 0 ? pos : N - 1 - pos;
+  return { row, col };
+}
+
+function getSquareFromPoint(x, y) {
+  const grid = document.getElementById('grid');
+  const rect = grid.getBoundingClientRect();
+  const relX = x - rect.left;
+  const relY = y - rect.top;
+  const cellW = rect.width / N;
+  const cellH = rect.height / N;
+  const col = Math.floor(relX / cellW);
+  const row = Math.floor(relY / cellH);
+  if (col < 0 || col >= N || row < 0 || row >= N) return null;
+  return cellToSquare(row, col);
+}
+
+function getCellCenter(sq) {
+  const { row, col } = squareToCell(sq);
+  const grid = document.getElementById('grid');
+  const rect = grid.getBoundingClientRect();
+  const cellW = rect.width / N;
+  const cellH = rect.height / N;
+  return {
+    x: col * cellW + cellW / 2,
+    y: row * cellH + cellH / 2,
+    w: cellW
+  };
+}
+
+function buildGrid() {
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+  grid.style.gridTemplateColumns = `repeat(${N}, 1fr)`;
+  grid.style.gridTemplateRows = `repeat(${N}, 1fr)`;
+  for (let row = 0; row < N; row++) {
+    for (let col = 0; col < N; col++) {
+      const sq = cellToSquare(row, col);
+      const div = document.createElement('div');
+      div.className = 'sq' + ((row + col) % 2 === 0 ? ' light' : '');
+      if (sq === N * N) div.classList.add('finish');
+      if (sq === 1) div.classList.add('start-sq');
+      div.dataset.sq = sq;
+      const num = document.createElement('span');
+      num.textContent = sq;
+      div.appendChild(num);
+      grid.appendChild(div);
+    }
+  }
+  redrawOverlay();
+}
+
+const boardWrap = document.getElementById('board-wrap');
+
+boardWrap.addEventListener('mousedown', e => {
+  const sq = getSquareFromPoint(e.clientX, e.clientY);
+  if (!sq) return;
+  isDragging = true;
+  dragStartSq = sq;
+  const grid = document.getElementById('grid');
+  const rect = grid.getBoundingClientRect();
+  dragStartPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  dragCurrentPos = { ...dragStartPos };
+  highlightSquare(sq, true);
+  e.preventDefault();
+});
+
+window.addEventListener('mousemove', e => {
+  if (!isDragging) return;
+  const grid = document.getElementById('grid');
+  const rect = grid.getBoundingClientRect();
+  dragCurrentPos = { x: e.clientX - rect.left, y: e.clientY - rect.top };
+  drawPreview();
+});
+
+window.addEventListener('mouseup', e => {
+  if (!isDragging) return;
+  isDragging = false;
+  highlightSquare(dragStartSq, false);
+  clearPreview();
+
+  const endSq = getSquareFromPoint(e.clientX, e.clientY);
+  if (!endSq || endSq === dragStartSq) { dragStartSq = null; return; }
+
+  if (mode === 'snake' && endSq >= dragStartSq) {
+    document.getElementById('hint-text').textContent = 'snakes must go downward — try again';
+    dragStartSq = null; return;
+  }
+  if (mode === 'ladder' && endSq <= dragStartSq) {
+    document.getElementById('hint-text').textContent = 'ladders must go upward — try again';
+    dragStartSq = null; return;
+  }
+  const conflict = connectors.find(c =>
+    c.from === dragStartSq || c.to === dragStartSq || c.from === endSq || c.to === endSq
+  );
+  if (conflict) {
+    document.getElementById('hint-text').textContent = 'square already used — try again';
+    dragStartSq = null; return;
+  }
+
+  connectors.push({ from: dragStartSq, to: endSq, type: mode });
+  document.getElementById('hint-text').textContent =
+    mode === 'snake' ? 'drag from one square to another to place a snake'
+                     : 'drag from one square to another to place a ladder';
+  dragStartSq = null;
+  redrawOverlay();
+});
+
+function highlightSquare(sq, on) {
+  document.querySelectorAll('.sq').forEach(el => {
+    if (parseInt(el.dataset.sq) === sq)
+      on ? el.classList.add('highlight') : el.classList.remove('highlight');
+  });
+}
+
+function drawPreview() {
+  const svg = document.getElementById('preview');
+  svg.innerHTML = '';
+  const grid = document.getElementById('grid');
+  svg.setAttribute('viewBox', `0 0 ${grid.offsetWidth} ${grid.offsetHeight}`);
+  if (!dragStartPos || !dragCurrentPos) return;
+  const cellW = grid.offsetWidth / N;
+  if (mode === 'snake') drawSnake(svg, dragStartPos.x, dragStartPos.y, dragCurrentPos.x, dragCurrentPos.y, cellW, 0.45);
+  else drawLadder(svg, dragStartPos.x, dragStartPos.y, dragCurrentPos.x, dragCurrentPos.y, cellW, 0.45);
+}
+
+function clearPreview() {
+  document.getElementById('preview').innerHTML = '';
+}
+
+function drawSnake(svg, x1, y1, x2, y2, cellW, opacity) {
+  const dx = x2 - x1, dy = y2 - y1;
+  const len = Math.sqrt(dx*dx + dy*dy);
+  if (len < 2) return;
+  const ux = dx/len, uy = dy/len;
+  const nx = -uy, ny = ux;
+  const amp = cellW * 0.32;
+  const cx1 = x1 + dx*0.25 + nx*amp;
+  const cy1 = y1 + dy*0.25 + ny*amp;
+  const cx2 = x1 + dx*0.65 - nx*amp;
+  const cy2 = y1 + dy*0.65 - ny*amp;
+  const d = `M${x1},${y1} C${cx1},${cy1} ${cx2},${cy2} ${x2},${y2}`;
+
+  const outline = document.createElementNS('http://www.w3.org/2000/svg','path');
+  outline.setAttribute('d', d);
+  outline.setAttribute('stroke','#8B2020');
+  outline.setAttribute('stroke-width', cellW * 0.2);
+  outline.setAttribute('stroke-linecap','round');
+  outline.setAttribute('fill','none');
+  outline.setAttribute('opacity', opacity);
+  svg.appendChild(outline);
+
+  const body = document.createElementNS('http://www.w3.org/2000/svg','path');
+  body.setAttribute('d', d);
+  body.setAttribute('stroke','#C0392B');
+  body.setAttribute('stroke-width', cellW * 0.13);
+  body.setAttribute('stroke-linecap','round');
+  body.setAttribute('fill','none');
+  body.setAttribute('opacity', opacity);
+  svg.appendChild(body);
+
+  const headR = cellW * 0.12;
+  const angle = Math.atan2(dy, dx) * 180 / Math.PI + 90;
+
+  const head = document.createElementNS('http://www.w3.org/2000/svg','ellipse');
+  head.setAttribute('cx', x1); head.setAttribute('cy', y1);
+  head.setAttribute('rx', headR * 1.4); head.setAttribute('ry', headR);
+  head.setAttribute('transform', `rotate(${angle} ${x1} ${y1})`);
+  head.setAttribute('fill','#C0392B');
+  head.setAttribute('opacity', opacity);
+  svg.appendChild(head);
+
+  const eye = document.createElementNS('http://www.w3.org/2000/svg','circle');
+  eye.setAttribute('cx', x1 + nx*headR*0.5);
+  eye.setAttribute('cy', y1 + ny*headR*0.5);
+  eye.setAttribute('r', headR * 0.28);
+  eye.setAttribute('fill','#1a0a0a');
+  eye.setAttribute('opacity', opacity);
+  svg.appendChild(eye);
+
+  [[1],[-1]].forEach(([s]) => {
+    const tongue = document.createElementNS('http://www.w3.org/2000/svg','line');
+    tongue.setAttribute('x1', x2); tongue.setAttribute('y1', y2);
+    tongue.setAttribute('x2', x2 + (-ux + nx*s*0.6)*headR*1.3);
+    tongue.setAttribute('y2', y2 + (-uy + ny*s*0.6)*headR*1.3);
+    tongue.setAttribute('stroke','#E74C3C');
+    tongue.setAttribute('stroke-width', headR * 0.35);
+    tongue.setAttribute('stroke-linecap','round');
+    tongue.setAttribute('opacity', opacity);
+    svg.appendChild(tongue);
+  });
+}
+
+function drawLadder(svg, x1, y1, x2, y2, cellW, opacity) {
+  const dx = x2-x1, dy = y2-y1;
+  const len = Math.sqrt(dx*dx+dy*dy);
+  if (len < 2) return;
+  const nx = -dy/len, ny = dx/len;
+  const off = cellW * 0.08;
+
+  [-1, 1].forEach(s => {
+    const rail = document.createElementNS('http://www.w3.org/2000/svg','line');
+    rail.setAttribute('x1', x1 + nx*off*s); rail.setAttribute('y1', y1 + ny*off*s);
+    rail.setAttribute('x2', x2 + nx*off*s); rail.setAttribute('y2', y2 + ny*off*s);
+    rail.setAttribute('stroke','#5C4A1A');
+    rail.setAttribute('stroke-width', cellW * 0.055);
+    rail.setAttribute('stroke-linecap','round');
+    rail.setAttribute('opacity', opacity);
+    svg.appendChild(rail);
+  });
+
+  const numRungs = Math.max(3, Math.floor(len / (cellW * 0.5)));
+  for (let i = 1; i < numRungs; i++) {
+    const t = i / numRungs;
+    const rung = document.createElementNS('http://www.w3.org/2000/svg','line');
+    rung.setAttribute('x1', x1 + dx*t + nx*off); rung.setAttribute('y1', y1 + dy*t + ny*off);
+    rung.setAttribute('x2', x1 + dx*t - nx*off); rung.setAttribute('y2', y1 + dy*t - ny*off);
+    rung.setAttribute('stroke','#9A7A3A');
+    rung.setAttribute('stroke-width', cellW * 0.04);
+    rung.setAttribute('stroke-linecap','round');
+    rung.setAttribute('opacity', opacity);
+    svg.appendChild(rung);
+  }
+}
+
+function redrawOverlay() {
+  const svg = document.getElementById('overlay');
+  svg.innerHTML = '';
+  const grid = document.getElementById('grid');
+  svg.setAttribute('viewBox', `0 0 ${grid.offsetWidth} ${grid.offsetHeight}`);
+  connectors.forEach(c => {
+    const f = getCellCenter(c.from);
+    const t = getCellCenter(c.to);
+    if (c.type === 'snake') drawSnake(svg, f.x, f.y, t.x, t.y, f.w, 1);
+    else drawLadder(svg, f.x, f.y, t.x, t.y, f.w, 1);
+  });
+}
+
+function gaussianElimination(A, b) {
+  const n = b.length;
+  const aug = A.map((row, i) => [...row, b[i]]);
+  for (let col = 0; col < n; col++) {
+    let maxRow = col;
+    for (let row = col+1; row < n; row++)
+      if (Math.abs(aug[row][col]) > Math.abs(aug[maxRow][col])) maxRow = row;
+    [aug[col], aug[maxRow]] = [aug[maxRow], aug[col]];
+    const piv = aug[col][col];
+    if (Math.abs(piv) < 1e-12) continue;
+    for (let j = col; j <= n; j++) aug[col][j] /= piv;
+    for (let row = 0; row < n; row++) {
+      if (row === col) continue;
+      const f = aug[row][col];
+      for (let j = col; j <= n; j++) aug[row][j] -= f * aug[col][j];
+    }
+  }
+  return aug.map(row => row[n]);
+}
+
+document.getElementById('calc-btn').addEventListener('click', () => {
+  const total = N * N;
+  const snakes = {}, ladders = {};
+  connectors.forEach(c => {
+    if (c.type === 'snake') snakes[c.from] = c.to;
+    else ladders[c.from] = c.to;
+  });
+
+  function move(sq) {
+    if (sq in snakes) return snakes[sq];
+    if (sq in ladders) return ladders[sq];
+    return sq;
+  }
+
+  const p = 1 / dieFaces.length;
+  const states = Array.from({length: total - 1}, (_, i) => i + 1);
+  const index = {};
+  states.forEach((s, i) => index[s] = i);
+  const n = states.length;
+
+  const P = Array.from({length: n}, () => new Array(n).fill(0));
+  for (const sq of states) {
+    for (const roll of dieFaces) {
+      const dest = sq + roll > total ? sq : move(sq + roll);
+      if (dest < total) P[index[sq]][index[dest]] += p;
+    }
+  }
+
+  const IminusP = P.map((row, i) => row.map((v, j) => (i === j ? 1 : 0) - v));
+  const k = gaussianElimination(IminusP.map(r => [...r]), Array(n).fill(1));
+  const Pk = P.map(row => row.reduce((s, v, j) => s + v * k[j], 0));
+  const m = gaussianElimination(IminusP.map(r => [...r]), k.map((ki, i) => 1 + 2 * Pk[i]));
+  const variance = Math.max(0, m[index[1]] - k[index[1]] ** 2);
+
+  document.getElementById('res-mean').textContent = k[index[1]].toFixed(2);
+  document.getElementById('res-std').textContent = Math.sqrt(variance).toFixed(2);
+});
+
+window.addEventListener('resize', redrawOverlay);
+buildGrid();
+</script>
+</body>
+</html>
