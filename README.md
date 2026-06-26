@@ -1,4 +1,4 @@
-# pythia
+# Pythia
 Snakes and Ladders solver
 
 <br>
