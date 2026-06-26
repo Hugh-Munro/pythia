@@ -6,16 +6,16 @@ Snakes and Ladders solver
 <p align="center">
   <img
     src="public/preview.png"
-    alt="Axiom network graph preview"
+    alt="Pythia preview"
     width="900"
     style="border: 1px solid #dde0e4; border-radius: 6px;"
   >
 </p>
 
 <p align="center">
-  <em>Axiom preview</em>
+  <em>Pythia preview</em>
 </p>
 
 ## Overview
 
-Axiom visualises concepts, doctrines, fields, and paradigms that shape the interpretation of physics
+I had a module in final year which used Markov chains to solve a toy snakes and ladder game, I thought it would be an interesting idea to expand that to larger and more complex boards. The code behind this was completely different to the math I did in college so it didn't help at all in the process. The outcome is an intuitive board designer with interesting statistical outputs and nice animations.
