@@ -1,0 +1,25 @@
+# python
+__pycache__/
+*.py[cod]
+*.pyo
+.env
+venv/
+env/
+.venv/
+
+# conda
+.conda/
+
+# node
+node_modules/
+
+# os
+.DS_Store
+Thumbs.db
+
+# editors
+.vscode/
+.idea/
+
+# vercel
+.vercel
