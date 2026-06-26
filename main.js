@@ -2,6 +2,7 @@ let N = 6, mode = 'snake', connectors = [], history = [];
 let isDragging = false, dragStartSq = null, dragStartPos = null, dragCurrentPos = null;
 let simRunning = false, simCancel = false, tokenEl = null, barHeights = [];
 let currentTokenColour = 0, hittingTimes = null, heatmapOn = false;
+let dragPaletteIdx = 0, dragAmpOffsets = [];
 
 const TOKEN_COLOURS = [
   {body:'#2980D9', top:'#5DADE2', base:'#1a6bb5'},
@@ -12,6 +13,17 @@ const TOKEN_COLOURS = [
   {body:'#17202A', top:'#2C3E50', base:'#0d1117'},
 ];
 
+const SNAKE_PALETTES = [
+  {dark:'#8B2A2A', mid:'#C0392B', light:'#F0705A'},
+  {dark:'#1A5C2A', mid:'#27AE60', light:'#6DE89A'},
+  {dark:'#1A3A5C', mid:'#2471A3', light:'#5DADE2'},
+  {dark:'#4A235A', mid:'#7D3C98', light:'#C39BD3'},
+  {dark:'#7D6608', mid:'#D4AC0D', light:'#F9E27A'},
+  {dark:'#1B4F72', mid:'#117A65', light:'#48C9B0'},
+  {dark:'#641E16', mid:'#A93226', light:'#F1948A'},
+  {dark:'#0B3D0B', mid:'#1E8449', light:'#58D68D'},
+];
+
 const dieMap = {
   coin: [1,2],
   d4:   [1,2,3,4],
@@ -20,6 +32,18 @@ const dieMap = {
 };
 
 let dieFaces = [1,2];
+
+// ---- snake appearance helpers ----
+
+function randomPaletteIdx() {
+  return Math.floor(Math.random() * SNAKE_PALETTES.length);
+}
+
+function randomAmpOffsets(segs) {
+  const offsets = [];
+  for (let i = 0; i < segs; i++) offsets.push(0.7 + Math.random() * 0.6);
+  return offsets;
+}
 
 // ---- board generation ----
 
@@ -39,7 +63,7 @@ function randomBoard() {
     const to = Math.floor(Math.random() * maxTo) + 1;
     if (usedFrom.has(from) || usedTo.has(to) || from === to || from === total) continue;
     usedFrom.add(from); usedTo.add(to);
-    nc.push({from, to, type: 'snake'});
+    nc.push({from, to, type:'snake', paletteIdx: randomPaletteIdx(), ampOffsets: randomAmpOffsets(4)});
   }
   att = 0;
   while (nc.filter(c => c.type === 'ladder').length < nl && att < 500) {
@@ -52,7 +76,7 @@ function randomBoard() {
     if (to >= total) continue;
     if (usedFrom.has(from) || usedTo.has(to) || from === to) continue;
     usedFrom.add(from); usedTo.add(to);
-    nc.push({from, to, type: 'ladder'});
+    nc.push({from, to, type:'ladder'});
   }
   return {n, connectors: nc};
 }
@@ -150,10 +174,11 @@ function applyHeatmap() {
 
 // ---- drawing ----
 
-function drawSnake(svg, x1, y1, x2, y2, cellW, opacity) {
+function drawSnake(svg, x1, y1, x2, y2, cellW, opacity, paletteIdx, ampOffsets) {
   const dx = x2 - x1, dy = y2 - y1, len = Math.sqrt(dx*dx + dy*dy);
   if (len < 2) return;
   const ux = dx/len, uy = dy/len, nx = -uy, ny = ux;
+  const pal = SNAKE_PALETTES[paletteIdx];
 
   const SEGS = 4;
   const pts = [];
@@ -164,7 +189,7 @@ function drawSnake(svg, x1, y1, x2, y2, cellW, opacity) {
   let d = `M${pts[0].x},${pts[0].y}`;
   for (let i = 0; i < SEGS; i++) {
     const sign = i % 2 === 0 ? 1 : -1;
-    const randAmp = baseAmp * (0.7 + Math.random() * 0.6);
+    const randAmp = baseAmp * ampOffsets[i];
     const mx = (pts[i].x + pts[i+1].x) / 2 + nx * randAmp * sign;
     const my = (pts[i].y + pts[i+1].y) / 2 + ny * randAmp * sign;
     d += ` Q${mx},${my} ${pts[i+1].x},${pts[i+1].y}`;
@@ -176,7 +201,7 @@ function drawSnake(svg, x1, y1, x2, y2, cellW, opacity) {
     p.setAttribute('stroke-linecap', 'round'); p.setAttribute('fill', 'none'); p.setAttribute('opacity', opacity);
     svg.appendChild(p);
   };
-  mkP(cellW*0.22, '#8B2A2A'); mkP(cellW*0.14, '#C0392B'); mkP(cellW*0.05, '#F0705A');
+  mkP(cellW*0.22, pal.dark); mkP(cellW*0.14, pal.mid); mkP(cellW*0.05, pal.light);
 
   const headR = cellW * 0.13, headAngle = Math.atan2(-uy, -ux) * 180 / Math.PI;
   const mkE = (cx, cy, rx, ry, fill, tr='') => {
@@ -186,8 +211,8 @@ function drawSnake(svg, x1, y1, x2, y2, cellW, opacity) {
     if (tr) e.setAttribute('transform', tr);
     svg.appendChild(e);
   };
-  mkE(x1, y1, headR*1.6, headR*1.1, '#8B2A2A', `rotate(${headAngle} ${x1} ${y1})`);
-  mkE(x1, y1, headR*1.35, headR, '#C0392B', `rotate(${headAngle} ${x1} ${y1})`);
+  mkE(x1, y1, headR*1.6, headR*1.1, pal.dark, `rotate(${headAngle} ${x1} ${y1})`);
+  mkE(x1, y1, headR*1.35, headR, pal.mid, `rotate(${headAngle} ${x1} ${y1})`);
   mkE(x1-ux*headR*0.3+nx*headR*0.2, y1-uy*headR*0.3+ny*headR*0.2, headR*0.55, headR*0.3, 'rgba(255,255,255,0.22)');
   const eye = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
   eye.setAttribute('cx', x1+nx*headR*0.55-ux*headR*0.3);
@@ -205,7 +230,7 @@ function drawSnake(svg, x1, y1, x2, y2, cellW, opacity) {
     tl.setAttribute('x1', snoutX); tl.setAttribute('y1', snoutY);
     tl.setAttribute('x2', snoutX-ux*headR*1.1+nx*s*headR*0.55);
     tl.setAttribute('y2', snoutY-uy*headR*1.1+ny*s*headR*0.55);
-    tl.setAttribute('stroke', '#F0705A'); tl.setAttribute('stroke-width', headR*0.3);
+    tl.setAttribute('stroke', pal.light); tl.setAttribute('stroke-width', headR*0.3);
     tl.setAttribute('stroke-linecap', 'round'); tl.setAttribute('opacity', opacity);
     svg.appendChild(tl);
   });
@@ -248,7 +273,7 @@ function redrawOverlay() {
   svg.setAttribute('viewBox', `0 0 ${grid.offsetWidth} ${grid.offsetHeight}`);
   connectors.forEach(c => {
     const f = getCellCenter(c.from), t = getCellCenter(c.to);
-    if (c.type === 'snake') drawSnake(svg, f.x, f.y, t.x, t.y, f.w, 1);
+    if (c.type === 'snake') drawSnake(svg, f.x, f.y, t.x, t.y, f.w, 1, c.paletteIdx, c.ampOffsets);
     else drawLadder(svg, f.x, f.y, t.x, t.y, f.w, 1);
   });
 }
@@ -260,7 +285,7 @@ function drawPreview() {
   svg.setAttribute('viewBox', `0 0 ${grid.offsetWidth} ${grid.offsetHeight}`);
   if (!dragStartPos || !dragCurrentPos) return;
   const cellW = grid.offsetWidth / N;
-  if (mode === 'snake') drawSnake(svg, dragStartPos.x, dragStartPos.y, dragCurrentPos.x, dragCurrentPos.y, cellW, 0.45);
+  if (mode === 'snake') drawSnake(svg, dragStartPos.x, dragStartPos.y, dragCurrentPos.x, dragCurrentPos.y, cellW, 0.45, dragPaletteIdx, dragAmpOffsets);
   else drawLadder(svg, dragStartPos.x, dragStartPos.y, dragCurrentPos.x, dragCurrentPos.y, cellW, 0.45);
 }
 
@@ -385,6 +410,8 @@ boardInner.addEventListener('mousedown', e => {
   const sq = getSquareFromPoint(e.clientX, e.clientY);
   if (!sq) return;
   isDragging = true; dragStartSq = sq;
+  dragPaletteIdx = randomPaletteIdx();
+  dragAmpOffsets = randomAmpOffsets(4);
   const grid = document.getElementById('grid');
   const rect = grid.getBoundingClientRect();
   dragStartPos = {x: e.clientX - rect.left, y: e.clientY - rect.top};
@@ -412,7 +439,13 @@ window.addEventListener('mouseup', e => {
   if (mode === 'ladder' && endSq <= dragStartSq) { setHint('ladders must go upward, try again'); dragStartSq = null; return; }
   if (connectors.find(c => c.from === dragStartSq || c.from === endSq)) { setHint('that square already has a connector head, try again'); dragStartSq = null; return; }
   history.push([...connectors]);
-  connectors.push({from: dragStartSq, to: endSq, type: mode});
+  connectors.push({
+    from: dragStartSq,
+    to: endSq,
+    type: mode,
+    paletteIdx: mode === 'snake' ? dragPaletteIdx : null,
+    ampOffsets: mode === 'snake' ? dragAmpOffsets : null
+  });
   setHint(mode === 'snake' ? 'drag from one square to another to place a snake' : 'drag from one square to another to place a ladder');
   dragStartSq = null;
   redrawOverlay();
