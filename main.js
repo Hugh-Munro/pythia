@@ -437,6 +437,7 @@ window.addEventListener('mouseup', e => {
   if (!endSq || endSq === dragStartSq) { dragStartSq = null; return; }
   if (mode === 'snake' && endSq >= dragStartSq) { setHint('snakes must go downward, try again'); dragStartSq = null; return; }
   if (mode === 'ladder' && endSq <= dragStartSq) { setHint('ladders must go upward, try again'); dragStartSq = null; return; }
+  if (dragStartSq === N * N) { setHint('the finish square cannot have a connector, try again'); dragStartSq = null; return; }
   if (connectors.find(c => c.from === dragStartSq || c.from === endSq)) { setHint('that square already has a connector head, try again'); dragStartSq = null; return; }
   history.push([...connectors]);
   connectors.push({
